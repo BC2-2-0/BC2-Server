@@ -19,7 +19,10 @@ const conn = mysql.createConnection(config.mysql);
 let clients = [];
 let livestreamEvents = [];
 
-app.listen(PORT, '10.82.18.24', () => {
+var mid = 36;
+var pid = 0;
+
+app.listen(PORT, '10.10.10.6', () => {
   console.log(`Livestream service starting`);
 });
 
@@ -52,26 +55,30 @@ function eventsHandler(request, response) {
 app.get('/receive', eventsHandler);
 
 async function addLivestreamEvent(request, response) {
-  console.log(request.body.menu);
   if (request.body.menu == undefined) {
     // Mining Event
-    const result = await conn.promise().query('SELECT MAX(mid) as max_mid FROM livestream_events');
-    const newMid = result[0][0].max_mid + 1;
-    request.body.mid = newMid;
+    console.log("mining");
+    conn.query(`insert into mining values(0)`,(err,rows,field)=>{
+	if(err) throw err;
+    })
+    request.body.mid = mid;
     request.body.type = 'mining';
+    mid += 1;
   } else {
-    // Block Event
-    const result = await conn.promise().query('SELECT MAX(bid) as max_bid FROM livestream_events');
-    const newBid = result[0][0].max_bid + 1;
-    request.body.bid = newBid;
+    // PAY Event
+    console.log("pay");
+    conn.query(`insert into pay values(0)`,(err,rows,field)=>{
+       	if(err) throw err;
+    })
+    request.body.bid = pid;
     request.body.type = 'block';
   }
 
   const livestreamEvent = request.body;
-  const sql = 'INSERT INTO livestream_events SET ?';
-  await conn.promise().query(sql, livestreamEvent);
+  //const sql = 'INSERT INTO livestream_events SET ?';
+  //await conn.promise().query(sql, livestreamEvent);
   livestreamEvents.push(livestreamEvent);
-  console.log(request.body);
+  console.log("body", request.body);
   response.json(livestreamEvent);
   sendEventsToAll(livestreamEvent);
 }
