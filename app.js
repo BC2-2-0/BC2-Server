@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mysql = require('mysql');
 const config = require('./config');
+require('dotenv').config();
+
 
 const app = express();
 
@@ -22,7 +24,7 @@ let livestreamEvents = [];
 var mid = 102;
 var pid = 100;
 
-app.listen(PORT, '172.31.47.142', () => {
+app.listen(PORT, process.env.PORT, () => {
   console.log(`Livestream service starting`);
 });
 
@@ -86,3 +88,23 @@ app.post('/send', addLivestreamEvent);
 function sendEventsToAll(livestreamEvent) {
   clients.forEach((client) => client.response.write(`data: ${JSON.stringify(livestreamEvent)}\n\n`));
 }
+
+var Balance; // 잔고
+var price;   // 상품 가격
+var product; // 상품 이름
+
+async function purchaseProduct(request, response) {
+  if (request.body.Balance - request.body.price >= 0) {
+    request.body.type = 'Success payment';
+  } else {
+    request.body.type = 'Fail payment';
+  }
+
+  const livestreamEvent = request.body;
+  livestreamEvents.push(livestreamEvent);
+  console.log("body", request.body);
+  response.json(livestreamEvent);
+  sendEventsToAll(livestreamEvent)
+}
+
+app.post('/purchase', purchaseProduct);
