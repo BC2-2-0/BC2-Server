@@ -29,6 +29,7 @@ app.listen(PORT, process.env.PORT, () => {
 });
 
 function eventsHandler(request, response) {
+  console.log("receive")
   const headers = {
     'Content-Type': 'text/event-stream',
     Connection: 'keep-alive',
@@ -57,6 +58,7 @@ function eventsHandler(request, response) {
 app.get('/receive', eventsHandler);
 
 async function addLivestreamEvent(request, response) {
+  console.log("send")
   if (request.body.menu == undefined) {
     // Mining Event
     console.log("mining");
@@ -94,6 +96,7 @@ var price;   // 상품 가격
 var product; // 상품 이름
 
 async function purchaseProduct(request, response) {
+  console.log("purchase")
   if (request.body.Balance - request.body.price >= 0) {
     request.body.type = 'Success payment';
   } else {
