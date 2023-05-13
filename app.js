@@ -91,13 +91,13 @@ function sendEventsToAll(livestreamEvent) {
   clients.forEach((client) => client.response.write(`data: ${JSON.stringify(livestreamEvent)}\n\n`));
 }
 
-var Balance; // 잔고
+var balance; // 잔고
 var price;   // 상품 가격
-var product; // 상품 이름
+var item; // 상품 이름
 
 async function purchaseProduct(request, response) {
   console.log("purchase")
-  if (request.body.Balance - request.body.price >= 0) {
+  if (request.body.balance - request.body.price >= 0) {
     request.body.type = 'Success payment';
   } else {
     request.body.type = 'Fail payment';
