@@ -32,14 +32,16 @@ function eventsHandler(request, response) {
   console.log("receive")
   const headers = {
     'Content-Type': 'text/event-stream',
-    Connection: 'keep-alive',
+    'Connection': 'keep-alive',
     'Cache-Control': 'no-cache',
   };
   response.writeHead(200, headers);
 
-  const data = 'connect';
+  const data = {
+    key: 'connect'
+  }
 
-  response.write(data);
+  response.write(JSON.stringify(data));
 
   const clientId = Date.now();
 
@@ -57,8 +59,14 @@ function eventsHandler(request, response) {
 
 app.get('/receive', eventsHandler);
 
+app.get('/', (req,res)=>{
+  res.send("hi?")
+})
+
 async function addLivestreamEvent(request, response) {
+
   console.log("send")
+
   if (request.body.menu == undefined) {
     // Mining Event
     console.log("mining");
@@ -70,7 +78,7 @@ async function addLivestreamEvent(request, response) {
     mid += 1;
   } else {
     // PAY Event
-    console.log("pay");
+    console.log("paying");
     conn.query(`insert into pay values(0)`,(err,rows,field)=>{
         if(err) throw err;
     })
@@ -88,26 +96,8 @@ async function addLivestreamEvent(request, response) {
 app.post('/send', addLivestreamEvent);
 
 function sendEventsToAll(livestreamEvent) {
-  clients.forEach((client) => client.response.write(`data: ${JSON.stringify(livestreamEvent)}\n\n`));
+  clients.forEach((client) => {
+          const jsonEvent = JSON.stringify(livestreamEvent);
+          client.response.write('data: $(jsonEvent}/n/n');
+        })
 }
-
-var Balance; // 잔고
-var price;   // 상품 가격
-var product; // 상품 이름
-
-async function purchaseProduct(request, response) {
-  console.log("purchase")
-  if (request.body.Balance - request.body.price >= 0) {
-    request.body.type = 'Success payment';
-  } else {
-    request.body.type = 'Fail payment';
-  }
-
-  const livestreamEvent = request.body;
-  livestreamEvents.push(livestreamEvent);
-  console.log("body", request.body);
-  response.json(livestreamEvent);
-  sendEventsToAll(livestreamEvent)
-}
-
-app.post('/purchase', purchaseProduct);
